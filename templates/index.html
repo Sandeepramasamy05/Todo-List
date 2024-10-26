@@ -1,19 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To-Do App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Your existing styles */
         body {
             font-family: Arial, sans-serif;
-            background-image: url('background.jpg');
             background-size: cover;
             background-position: center;
             margin: 0;
             padding: 0;
         }
+
         nav {
             background: #0082e6;
             height: 80px;
@@ -130,11 +130,11 @@
             cursor: pointer;
             font-size: 24px;
             color: red;
-            transition: transform 0.3s ease; /* For zoom-out effect */
+            transition: transform 0.3s ease;
         }
 
         .delete-btn:hover {
-            transform: scale(0.8); /* Zoom out */
+            transform: scale(0.8);
         }
 
         .plus-btn {
@@ -259,30 +259,42 @@
     <script>
         const taskContainer = document.getElementById('taskContainer');
         const plusBtn = document.getElementById('plusBtn');
+        const taskList = document.getElementById('taskList');
 
+        // Show the task container when "+" button is clicked
         plusBtn.addEventListener('click', () => {
             taskContainer.style.display = 'block';
             document.getElementById('task').focus();
         });
 
+        // Function to fetch and render tasks
         function fetchTasks(taskType = '') {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', `/get_tasks?task_type=${taskType}`, true);
             xhr.onload = function () {
                 if (this.status === 200) {
                     const tasks = JSON.parse(this.responseText);
-                    const taskList = document.getElementById('taskList');
-                    taskList.innerHTML = '';
+                    taskList.innerHTML = '';  // Clear current task list
+
+                    if (!tasks || tasks.length === 0) {
+                        taskList.innerHTML = '<p>No tasks available.</p>'; // If no tasks, show message
+                        return;
+                    }
 
                     tasks.forEach(task => {
                         const li = document.createElement('li');
-                        li.className = `${task.priority}-priority`; // Assign class based on priority
-                        const dueDate = new Date(task.due_date).toLocaleDateString(); // Format the due date
+                        const priorityClass = task.priority ? task.priority.toLowerCase() + '-priority' : 'medium-priority'; // Fallback class
+
+                        li.classList.add(priorityClass);
                         li.innerHTML = `
-                            <span class="task-name">${task.task}</span>
-                            <span class="due-date">Due: ${dueDate}</span>
-                            <button class="delete-btn" data-id="${task.id}"><i class="fa fa-trash"></i></button>
-                        `;
+                            <span>
+                                <span class="task-name">${task[1]}</span>
+                                <span class="due-date">Due: ${task[2]}</span>
+                            </span>
+                            <button class="delete-btn" onclick="deleteTask(${task[0]})"><i class="fas fa-trash"></i></button>`
+
+                        ;
+
                         taskList.appendChild(li);
                     });
                 }
@@ -290,61 +302,65 @@
             xhr.send();
         }
 
-        document.getElementById('addTaskBtn').addEventListener('click', function() {
-            const task = document.getElementById('task').value;
+        // Add task
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            const taskName = document.getElementById('task').value;
             const dueDate = document.getElementById('due_date').value;
             const priority = document.getElementById('priority').value;
             const taskType = document.getElementById('task_type').value;
 
-            if (task && dueDate && priority && taskType) {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/add_task', true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.onload = function() {
-                    if (this.status === 200) {
-                        fetchTasks();  // Refresh the task list after adding
-                    }
-                };
-
-                const data = JSON.stringify({ task, due_date: dueDate, priority, task_type: taskType });
-                xhr.send(data);
-
-                document.getElementById('task').value = '';
-                document.getElementById('due_date').value = '';
-                document.getElementById('priority').value = '';
-                document.getElementById('task_type').value = '';
-            } else {
-                alert('Please fill in all fields');
+            if (!taskName || !dueDate || !priority || !taskType) {
+                alert('Please fill all fields');
+                return;
             }
+
+            const taskData = {
+                name: taskName,
+                due_date: dueDate,
+                priority: priority,
+                type: taskType
+            };
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/add_task', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function () {
+                if (this.status === 200) {
+                    fetchTasks();
+                }
+            };
+            xhr.send(JSON.stringify(taskData));
+
+            // Clear input fields after submission
+            document.getElementById('task').value = '';
+            document.getElementById('due_date').value = '';
+            document.getElementById('priority').value = '';
+            document.getElementById('task_type').value = '';
         });
 
-        document.getElementById('taskList').addEventListener('click', function(e) {
-            if (e.target.classList.contains('fa-trash')) {
-                const id = e.target.parentElement.getAttribute('data-id');
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', `/delete_task?id=${id}`, true);
-                xhr.onload = function() {
-                    if (this.status === 200) {
-                        fetchTasks();
-                    }
-                };
-                xhr.send();
-            }
-        });
+        // Delete task
+        function deleteTask(taskId) {
+    console.log(`Deleting task with ID: ${taskId}`);  // Log task ID to ensure it's correct
 
-        document.getElementById('allBtn').addEventListener('click', function() {
+    const xhr = new XMLHttpRequest();
+    xhr.open('DELETE', `/delete_task/${taskId}`, true);
+    xhr.onload = function () {
+        if (this.status === 200) {
+            console.log('Task deleted successfully');
             fetchTasks();
-        });
+        } else {
+            console.log('Failed to delete task');
+        }
+    };
+    xhr.send();
+}
 
-        document.getElementById('workBtn').addEventListener('click', function() {
-            fetchTasks('Work');
-        });
+        // Filter buttons
+        document.getElementById('allBtn').addEventListener('click', () => fetchTasks());
+        document.getElementById('workBtn').addEventListener('click', () => fetchTasks('Work'));
+        document.getElementById('personalBtn').addEventListener('click', () => fetchTasks('Personal'));
 
-        document.getElementById('personalBtn').addEventListener('click', function() {
-            fetchTasks('Personal');
-        });
-
-        // Load all tasks initially
+        // Fetch all tasks initially
         fetchTasks();
     </script>
 </body>
