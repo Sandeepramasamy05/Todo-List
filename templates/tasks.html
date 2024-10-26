@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tasks</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Add this style to handle completed tasks */
+        .completed {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome, {{ name }}</h2>
+        <form method="POST" action="{{ url_for('tasks') }}">
+            <input type="text" name="title" placeholder="Task Title" required>
+            <textarea name="description" placeholder="Task Description"></textarea>
+            <select name="category">
+                <option>Personal</option>
+                <option>Work</option>
+                <option>Shopping</option>
+                <option>Other</option>
+            </select>
+            <select name="priority">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+            </select>
+            <input type="date" name="due_date">
+            <button type="submit">Add Task</button>
+        </form>
+        <ul>
+            {% for task in tasks %}
+                <li class="{{ 'completed' if task.completed else '' }}">
+                    {{ task.title }} - {{ task.category }} - {{ task.priority }}
+                    {% if not task.completed %}
+                        <form method="POST" action="{{ url_for('complete_task', task_id=task.id) }}" style="display:inline;">
+                            <button type="submit">Complete</button>
+                        </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</body>
+</html>
