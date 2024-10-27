@@ -2,51 +2,222 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tasks</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
     <style>
-        /* Add this style to handle completed tasks */
+        /* Add shadow and border-radius to container */
+        .container {
+        
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 70px;
+            margin-bottom: 100px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width:100%;
+        }
+
+        /* Style the header */
+        h2 {
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #66d4e2;
+        }
+
+        /* Style for task list */
+        .list-group-item {
+           background-color: rgba(255, 255, 255, 0.1);
+           border: none;
+           color: #000000;
+           
+           padding: 20px; /* Increase padding for larger div */
+           border-radius: 10px;
+           margin-bottom: 10px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          display: flex;
+          align-items: center;
+         justify-content: space-between;
+         width: 280%; /* Keep the width to fit the screen */
+         max-width: 600px; /* Increased max width */
+            margin-left: -90px; /* Move slightly to the left */
+}
+
+        /* Add hover effect to buttons */
+        .btn {
+            border-radius: 25px;
+            transition: transform 0.3s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Completed tasks */
         .completed {
             text-decoration: line-through;
+            color: #7f8c8d;
+        }
+
+        /* Custom styling for input and buttons */
+        .form-control {
+            border-radius: 25px;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        /* Customize logout button */
+        .logout-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: #fff;
+            border-radius: 25px;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Checkbox customization */
+        .task-checkbox {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Align trash icon to the right */
+        .delete-btn {
+            color: #e74c3c;
+            font-size: 18px;
+            margin-left: 15px;
+        }
+
+        .delete-btn:hover {
+            color: #c0392b;
+        }
+
+        /* Flexbox layout for tasks */
+        .task-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 10;
+        }
+
+        .task-title {
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container text-center">
         <h2>Welcome, {{ name }}</h2>
-        <form method="POST" action="{{ url_for('tasks') }}">
-            <input type="text" name="title" placeholder="Task Title" required>
-            <textarea name="description" placeholder="Task Description"></textarea>
-            <select name="category">
-                <option>Personal</option>
-                <option>Work</option>
-                <option>Shopping</option>
-                <option>Other</option>
-            </select>
-            <select name="priority">
-                <option>High</option>
-                <option>Medium</option>
-                <option>Low</option>
-            </select>
-            <input type="date" name="due_date">
-            <button type="submit">Add Task</button>
+        <form method="POST" action="{{ url_for('tasks') }}" class="form-group">
+            <div class="form-row">
+                <div class="col-12 col-md-6 mb-2">
+                    <input type="text" name="title" class="form-control" placeholder="Task Title" required>
+                </div>
+                <div class="col-12 col-md-6 mb-2">
+                    <select name="category" class="form-control">
+                        <option>Personal</option>
+                        <option>Work</option>
+                        <option>Shopping</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-12 mb-2">
+                    <textarea name="description" class="form-control" placeholder="Task Description"></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="col-6 col-md-4 mb-2">
+                    <select name="priority" class="form-control">
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-4 mb-2">
+                    <input type="date" name="due_date" class="form-control" id="due_date">
+                </div>
+                <div class="col-12 col-md-4 mb-2">
+                    <button type="submit" class="btn btn-block"><i class="fas fa-plus"></i> Add Task</button>
+                </div>
+            </div>
         </form>
-        <ul>
-            {% for task in tasks %}
-                <li class="{{ 'completed' if task.completed else '' }}">
-                    {{ task.title }} - {{ task.category }} - {{ task.priority }}
-                    {% if not task.completed %}
-                        <form method="POST" action="{{ url_for('complete_task', task_id=task.id) }}" style="display:inline;">
-                            <button type="submit">Complete</button>
-                        </form>
-                    {% endif %}
-                    <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display:inline;">
-                        <button type="submit">Delete</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('logout') }}">Logout</a>
+
+        <!-- Task List -->
+        <div class="row task-list">
+            <div class="col-md-8 offset-md-2">
+                <ul class="list-group">
+                    {% for task in tasks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center {{ 'completed' if task.completed else '' }}">
+                            <form method="POST" action="{{ url_for('complete_task', task_id=task.id) }}" class="form-inline">
+                                <input type="checkbox" name="completed" class="task-checkbox" onChange="this.form.submit()" {{ 'checked' if task.completed else '' }}>
+                                <span>{{ task.title }} - {{ task.category }} - {{ task.priority }}</span>
+                            </form>
+                            <div>
+                                <!-- Edit Button with Edit Icon -->
+                                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warning btn-sm mr-2">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <!-- Delete Button with Trash Icon -->
+                                <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display:inline;">
+                                    <button type="submit" class="delete-btn btn"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                
+            </div>
+        </div>
+
+        <!-- Logout Button -->
+        <div class="row">
+            <div class="col-12 text-center mt-4">
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
     </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dueDateInput = document.getElementById("due_date");
+
+        // Get today's date
+        const today = new Date();
+        const minDate = today.toISOString().split("T")[0];
+
+        // Calculate one year from today
+        const nextYear = new Date(today.setFullYear(today.getFullYear() + 1));
+        const maxDate = nextYear.toISOString().split("T")[0];
+
+        // Set min and max attributes
+        dueDateInput.setAttribute("min", minDate);
+        dueDateInput.setAttribute("max", maxDate);
+    });
+</script>
 </html>

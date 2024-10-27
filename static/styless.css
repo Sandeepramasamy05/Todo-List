@@ -1,7 +1,8 @@
+/* CSS in static/styless.css */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
-    background-image: url("../static/save.jpg"); /* Use relative path */
+    background-image: url("../static/log.jpg"); /* Use relative path */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -12,17 +13,16 @@ body {
     margin: 0;
     background-color:  radial-gradient(circle at top left, #4B0082, #2E0854);
 }
+
+/* Rest of the CSS */
 .container {
-    height: 750px;
-    max-width: 700px;
-    margin: 45px auto;
+    max-width: 500px;
+    margin: 50px auto;
     padding: 20px;
-    background: white;
+    border:#333;
     border-radius: 8px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    overflow-y: auto; /* Enables vertical scrolling */
 }
-
 
 h2 {
     text-align: center;
