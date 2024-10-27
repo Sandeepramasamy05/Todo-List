@@ -1,31 +1,66 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
-    background-image: url("../static/save.jpg"); /* Use relative path */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color:  radial-gradient(circle at top left, #4B0082, #2E0854);
+    position: relative; /* Set position relative to position the pseudo-element */
 }
+
+body::before {
+    content: '';
+    position: absolute; /* Absolute position for the pseudo-element */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("../static/save.jpg"); /* Use relative path */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(8px); /* Apply blur effect */
+    z-index: 0; /* Position it behind other content */
+}
+
 .container {
     height: 750px;
     max-width: 700px;
     margin: 45px auto;
     padding: 20px;
-    background: white;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8); /* Semi-transparent background color */
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
     overflow-y: auto; /* Enables vertical scrolling */
+    position: relative; /* Position relative to stack above pseudo-element */
+    z-index: 2; /* Position above the blurred background */
+    text-align: center; /* Center the content inside the container */
 }
 
+.container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar */
+}
 
+/* Optional: Hide scrollbar for Firefox */
+.container {
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+
+/* New class for the small image as a background */
+.small-image {
+    background-image: url("../static/logo.png"); /* Use your small image path */
+    background-size: contain; /* Scale the image to fit the container */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-position: center; /* Center the image */
+    width: 50px; /* Adjust width as needed */
+    height: 50px; /* Adjust height as needed */
+    margin: 0 auto 10px;
+    margin-right: 90%;
+    margin-top: 10px; /* Center the image horizontally and add margin below */
+}
+
+/* Other existing styles */
 h2 {
-    text-align: center;
     color: #333;
 }
 
@@ -35,17 +70,6 @@ input, textarea, select, button {
     margin: 10px 0;
     border-radius: 5px;
     border: 1px solid #ddd;
-}
-
-button {
-    background-color: #28a745;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #218838;
 }
 
 ul {
