@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tasks</title>
-    
+    <title>Todo-list</title>
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/x-icon">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
     <style>
         /* Add shadow and border-radius to container */
         .container {
-        
             padding: 20px;
             border-radius: 15px;
             margin-top: 70px;
             margin-bottom: 100px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            width:100%;
+            width: 90%; /* Use a percentage for responsiveness */
+            max-width: 600px; /* Limit maximum width */
         }
 
         /* Style the header */
@@ -31,24 +28,26 @@
             text-transform: uppercase;
             color: #66d4e2;
         }
+        h1 {
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #66d4e2;
+            font-family: "Adobe Caslon Pro", "Big Caslon", "Caslon", "Times New Roman", serif;
+        }
 
         /* Style for task list */
         .list-group-item {
-           background-color: rgba(255, 255, 255, 0.1);
-           border: none;
-           color: #000000;
-           
-           padding: 20px; /* Increase padding for larger div */
-           border-radius: 10px;
-           margin-bottom: 10px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-          display: flex;
-          align-items: center;
-         justify-content: space-between;
-         width: 280%; /* Keep the width to fit the screen */
-         max-width: 600px; /* Increased max width */
-            margin-left: -90px; /* Move slightly to the left */
-}
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #000000;
+            padding: 20px; /* Increase padding for larger div */
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
         /* Add hover effect to buttons */
         .btn {
@@ -72,13 +71,17 @@
         }
 
         button {
-            background-color: #2ecc71;
+            background-color: #212221;
             color: white;
             border: none;
         }
 
-        button:hover {
-            background-color: #27ae60;
+        /* Customize Add Task button */
+        .btn-add-task {
+            background-color: #28a745; /* Green background */
+        }
+        .btn-add-task:hover {
+            background-color: #218838; /* Darker green on hover */
         }
 
         /* Customize logout button */
@@ -101,15 +104,16 @@
             height: 20px;
         }
 
-        /* Align trash icon to the right */
         .delete-btn {
             color: #e74c3c;
             font-size: 18px;
-            margin-left: 15px;
+            margin-left: -5px;
+            transition: transform 0.5s ease, color 0.5s ease; /* Smooth transition for transform and color */
         }
 
         .delete-btn:hover {
-            color: #c0392b;
+            color: #e61010; /* Change color on hover */
+            transform: scale(2); /* Slightly zoom in (10% larger) */
         }
 
         /* Flexbox layout for tasks */
@@ -122,10 +126,23 @@
         .task-title {
             margin-left: 10px;
         }
+
+        /* Media Queries for responsiveness */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5rem; /* Smaller font for smaller screens */
+            }
+            h2 {
+                font-size: 1rem; /* Smaller font for smaller screens */
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container text-center">
+        <div class="small-image"></div>
+        <h1>Todo-list</h1>
         <h2>Welcome, {{ name }}</h2>
         <form method="POST" action="{{ url_for('tasks') }}" class="form-group">
             <div class="form-row">
@@ -137,6 +154,8 @@
                         <option>Personal</option>
                         <option>Work</option>
                         <option>Shopping</option>
+                        <option>Health</option>
+                        <option>Education</option>
                         <option>Other</option>
                     </select>
                 </div>
@@ -158,7 +177,7 @@
                     <input type="date" name="due_date" class="form-control" id="due_date">
                 </div>
                 <div class="col-12 col-md-4 mb-2">
-                    <button type="submit" class="btn btn-block"><i class="fas fa-plus"></i> Add Task</button>
+                    <button type="submit" class="btn btn-add-task btn-block"><i class="fas fa-plus"></i> Add Task</button>
                 </div>
             </div>
         </form>
@@ -175,9 +194,11 @@
                             </form>
                             <div>
                                 <!-- Edit Button with Edit Icon -->
-                                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warning btn-sm mr-2">
+                                <a href="javascript:void(0);" class="btn btn-warning btn-sm mr-2" 
+                                    onclick="editTask('{{ task.id }}', '{{ task.title }}', '{{ task.category }}', '{{ task.description }}', '{{ task.priority }}', '{{ task.due_date }}')">
                                     <i class="fas fa-edit"></i>
                                 </a>
+
                                 <!-- Delete Button with Trash Icon -->
                                 <form method="POST" action="{{ url_for('delete_task', task_id=task.id) }}" style="display:inline;">
                                     <button type="submit" class="delete-btn btn"><i class="fas fa-trash"></i></button>
@@ -186,7 +207,6 @@
                         </li>
                     {% endfor %}
                 </ul>
-                
             </div>
         </div>
 
@@ -206,18 +226,14 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const dueDateInput = document.getElementById("due_date");
-
-        // Get today's date
-        const today = new Date();
-        const minDate = today.toISOString().split("T")[0];
-
-        // Calculate one year from today
-        const nextYear = new Date(today.setFullYear(today.getFullYear() + 1));
-        const maxDate = nextYear.toISOString().split("T")[0];
-
-        // Set min and max attributes
-        dueDateInput.setAttribute("min", minDate);
-        dueDateInput.setAttribute("max", maxDate);
+        const today = new Date().toISOString().split("T")[0]; // Get today's date
+        dueDateInput.setAttribute("min", today); // Set the min attribute for the due date
     });
+
+    function editTask(id, title, category, description, priority, due_date) {
+        // Function to handle editing of tasks
+        // You can implement a modal here or redirect to an edit page
+        alert(`Edit Task: ${title}\nCategory: ${category}\nDescription: ${description}\nPriority: ${priority}\nDue Date: ${due_date}`);
+    }
 </script>
 </html>
