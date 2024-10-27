@@ -8,6 +8,7 @@ from threading import Timer
 import webbrowser
 
 
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
@@ -79,7 +80,7 @@ def send_daily_tasks():
     conn.close()
 
 # Schedule the task to run at 7:00 am daily
-scheduler.add_job(send_daily_tasks, 'cron', hour=21, minute=34)
+scheduler.add_job(send_daily_tasks, 'cron', hour=18, minute=25)
 
 @app.route('/')
 def home():
@@ -151,12 +152,16 @@ def register():
         conn = db_connect()
         cursor = conn.cursor()
         try:
+            print("hello")
             cursor.execute("INSERT INTO users (name, phone_number, password) VALUES (%s, %s, %s)", (name, phone, password))
             conn.commit()
+            print("hell")
             flash("Registration successful. Please login.", "success")
             return redirect(url_for('login'))
         except mysql.connector.Error as err:
-            flash("Phone number already registered.", "danger")
+            print("Database error:", err)
+            flash("An error occurred: " + str(err), "danger")
+
         finally:
             cursor.close()
             conn.close()
@@ -206,7 +211,41 @@ def tasks():
     conn.close()
     
     return render_template('tasks.html', tasks=tasks, name=session['name'])
-
+@app.route('/edit_task/<int:task_id>', methods=['GET', 'POST'])
+def edit_task(task_id):
+    conn = db_connect()
+    cursor = conn.cursor(dictionary=True)
+    
+    # If form submitted, update task
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        category = request.form['category']
+        priority = request.form['priority']
+        due_date = request.form['due_date']
+        
+        cursor.execute("""
+            UPDATE tasks 
+            SET title = %s, description = %s, category = %s, priority = %s, due_date = %s
+            WHERE id = %s
+        """, (title, description, category, priority, due_date, task_id))
+        conn.commit()
+        
+        flash("Task updated successfully!", "success")
+        return redirect(url_for('tasks'))
+    
+    # Fetch task details for editing
+    cursor.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
+    task = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    return render_template('edit_task.html', task=task)
+@app.template_filter('date')
+def format_date(value, format='%Y-%m-%d'):
+    if value:
+        return value.strftime(format)
+    return ""
 @app.route('/tasks/complete/<int:task_id>', methods=['POST'])
 def complete_task(task_id):
     conn = db_connect()

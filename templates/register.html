@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styless.css') }}">
 </head>
 <body>
     <div class="container">
-        <h2>Register</h2>
+        <h1>Register</h1>
         <form method="POST" action="{{ url_for('register') }}">
             <input type="text" name="name" placeholder="Name" required>
             <input type="text" name="phone" placeholder="Phone Number" required>
