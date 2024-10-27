@@ -7,6 +7,7 @@ from twilio.rest import Client
 from threading import Timer
 import webbrowser
 
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
@@ -107,6 +108,38 @@ def login():
         else:
             flash("Invalid credentials", "danger")
     return render_template('login.html')
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        phone = request.form['phone']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        # Connect to the database to check if the phone exists
+        conn = db_connect()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE phone_number = %s", (phone,))
+        user = cursor.fetchone()
+        
+        if user:
+            # Check if the new password and confirm password match
+            if new_password != confirm_password:
+                flash("Passwords do not match.", "danger")
+            else:
+                # Hash the new password and update it in the database
+                hashed_password = generate_password_hash(new_password)
+                cursor.execute("UPDATE users SET password = %s WHERE phone_number = %s", (hashed_password, phone))
+                conn.commit()
+                flash("Password reset successfully. Please log in with your new password.", "success")
+                return redirect(url_for('login'))
+        else:
+            flash("Phone number not found.", "danger")
+        
+        cursor.close()
+        conn.close()
+
+    return render_template('forgot_password.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
